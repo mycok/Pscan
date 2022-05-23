@@ -17,9 +17,8 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List all the hosts",
-	Long:    `List all the hosts in the hosts list`,
 	Aliases: []string{"l"},
+	Short:   "List all the hosts",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		hostsFile, err := cmd.Flags().GetString("hosts-file")
 		if err != nil {

@@ -17,10 +17,10 @@ import (
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add <host1>....<hostn>",
+	Aliases: []string{"a"},
 	Short: "Add new host(s) to the hosts list",
 	Long: `Add any number of hosts to the hosts list. Do this by providing
 a comma separated list of host names.`,
-	Aliases: []string{"a"},
 	Args: cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -45,7 +45,9 @@ func addAction(w io.Writer, hostsFile string, args []string) error {
 			return err
 		}
 
-		fmt.Fprintln(w, "Added host:", host)
+		if _, err := fmt.Fprintln(w, "Added host:", host); err != nil {
+			return err
+		}
 	}
 
 	return hl.Save(hostsFile)
