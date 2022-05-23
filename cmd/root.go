@@ -14,9 +14,9 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "Pscan",
+	Use:     "Pscan",
 	Version: "0.1",
-	Short: "A Fast TCP port scanner",
+	Short:   "A Fast TCP port scanner",
 	Long: `Pscan - short for Port Scanner - executes TCP port scan on a list of hosts.
 
 Pscan allows you to add, list, and delete hosts from the list.
@@ -45,15 +45,10 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.Pscan.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringP("hosts-file", "f", "Pscan.hosts", "Pscan hosts file")
 
 	versionTemplate := `{{printf "%s: %s - version %s\n" .Name .Short .Version}}`
 	rootCmd.SetVersionTemplate(versionTemplate)
 }
 
 func initConfig() {}
-
-
