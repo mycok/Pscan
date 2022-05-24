@@ -15,32 +15,32 @@ import (
 func TestHostActions(t *testing.T) {
 	hosts := []string{"host1", "host2", "host3"}
 
-	testCases := []struct{
-		name string
-		args []string
-		expected string
-		initList bool
+	testCases := []struct {
+		name       string
+		args       []string
+		expected   string
+		initList   bool
 		actionFunc func(io.Writer, string, []string) error
 	}{
 		{
-			name:     "AddAction",
-			args:     hosts,
-			expected: "Added host: host1\nAdded host: host2\nAdded host: host3\n",
-			initList: false,
+			name:       "AddAction",
+			args:       hosts,
+			expected:   "Added host: host1\nAdded host: host2\nAdded host: host3\n",
+			initList:   false,
 			actionFunc: addAction,
 		},
 		{
-			name:     "ListAction",
-			args:     hosts,
-			expected: "host1\nhost2\nhost3\n",
-			initList: true,
+			name:       "ListAction",
+			args:       hosts,
+			expected:   "host1\nhost2\nhost3\n",
+			initList:   true,
 			actionFunc: listAction,
 		},
 		{
-			name:     "DeleteAction",
-			args:     []string{"host1", "host2"},
-			expected: "Deleted host: host1\nDeleted host: host2\n",
-			initList: true,
+			name:       "DeleteAction",
+			args:       []string{"host1", "host2"},
+			expected:   "Deleted host: host1\nDeleted host: host2\n",
+			initList:   true,
 			actionFunc: deleteAction,
 		},
 	}
@@ -77,7 +77,7 @@ func TestToolIntegration(t *testing.T) {
 
 	hostToDelete := "host2"
 
-	hostsAfterDel := []string{ "host1", "host3"}
+	hostsAfterDel := []string{"host1", "host3"}
 
 	// Define the combined final output from all the executed operations.
 	expectedOutput := ""

@@ -16,12 +16,12 @@ import (
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete <host1>...<hostn>",
+	Use:     "delete <host1>...<hostn>",
 	Aliases: []string{"d"},
-	Short: "Delete host(s) to the hosts list",
+	Short:   "Delete host(s) to the hosts list",
 	Long: `Delete any number of hosts to the hosts list. Do this by providing
 	a comma separated list of host names.`,
-	Args: cobra.MinimumNArgs(1),
+	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		hostsFile, err := cmd.Flags().GetString("hosts-file")
