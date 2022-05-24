@@ -2,13 +2,16 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/mycok/Pscan/scan"
 )
 
+// TODO: add an integration test for a compiled tool.
 func TestHostActions(t *testing.T) {
 	hosts := []string{"host1", "host2", "host3"}
 
@@ -62,14 +65,67 @@ func TestHostActions(t *testing.T) {
 	}
 }
 
+func TestToolIntegration(t *testing.T) {
+	hosts := []string{"host1", "host2", "host3"}
+
+	fileName := setup(t, hosts, false)
+	defer t.Cleanup(func() {
+		os.Remove(fileName)
+	})
+
+	var outBuf bytes.Buffer
+
+	hostToDelete := "host2"
+
+	hostsAfterDel := []string{ "host1", "host3"}
+
+	// Define the combined final output from all the executed operations.
+	expectedOutput := ""
+
+	for _, h := range hosts {
+		expectedOutput += fmt.Sprintf("Added host: %s\n", h)
+	}
+
+	expectedOutput += strings.Join(hosts, "\n")
+	expectedOutput += fmt.Sprintln()
+	expectedOutput += fmt.Sprintf("Deleted host: %s\n", hostToDelete)
+	expectedOutput += strings.Join(hostsAfterDel, "\n")
+	expectedOutput += fmt.Sprintln()
+
+	// Add hosts to the list.
+	if err := addAction(&outBuf, fileName, hosts); err != nil {
+		t.Fatalf("Expected no error but got: %q instead\n", err)
+	}
+
+	// List all hosts.
+	if err := listAction(&outBuf, fileName, nil); err != nil {
+		t.Fatalf("Expected no error but got: %q instead\n", err)
+	}
+
+	// Delete a host.
+	if err := deleteAction(&outBuf, fileName, []string{hostToDelete}); err != nil {
+		t.Fatalf("Expected no error but got: %q instead\n", err)
+	}
+
+	// List remaining hosts after a deletion operation.
+	if err := listAction(&outBuf, fileName, nil); err != nil {
+		t.Fatalf("Expected no error but got: %q instead\n", err)
+	}
+
+	if expectedOutput != outBuf.String() {
+		t.Errorf("Expected output: %q, but got: %q instead\n", expectedOutput, outBuf.String())
+	}
+
+}
+
 func setup(t *testing.T, hosts []string, initList bool) string {
 	// create a temp file.
-	f, err := os.CreateTemp("", "Pscan")
+	file, err := os.CreateTemp("", "Pscan")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	f.Close()
+	file.Close()
 
 	// Initialize the list if necessary.
 	if initList {
@@ -81,10 +137,10 @@ func setup(t *testing.T, hosts []string, initList bool) string {
 			}
 		}
 
-		if err := hl.Save(f.Name()); err != nil {
+		if err := hl.Save(file.Name()); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	return f.Name()
+	return file.Name()
 }
