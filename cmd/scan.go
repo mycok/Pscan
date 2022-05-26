@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/mycok/Pscan/scan"
 )
@@ -20,10 +21,7 @@ var scanCmd = &cobra.Command{
 	Short: "Run a port scan on the hosts",
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		hostsFile, err := cmd.Flags().GetString("hosts-file")
-		if err != nil {
-			return err
-		}
+		hostsFile := viper.GetString("hosts-file")
 
 		ports, err := cmd.Flags().GetIntSlice("ports")
 		if err != nil {
