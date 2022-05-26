@@ -18,6 +18,7 @@ import (
 var scanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "Run a port scan on the hosts",
+	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		hostsFile, err := cmd.Flags().GetString("hosts-file")
 		if err != nil {
@@ -52,7 +53,7 @@ func printResults(w io.Writer, results []scan.Result) error {
 		message += fmt.Sprintf("%s:", r.Host)
 
 		if !r.Found {
-			message += " Host not found\n\n"
+			message += " Host not found\n"
 
 			continue
 		}
@@ -74,5 +75,5 @@ func printResults(w io.Writer, results []scan.Result) error {
 func init() {
 	rootCmd.AddCommand(scanCmd)
 
-	rootCmd.Flags().IntSliceP("ports", "p", []int{22, 80, 443}, "ports to scan")
+	scanCmd.Flags().IntSliceP("ports", "p", []int{22, 80, 443}, "ports to scan")
 }

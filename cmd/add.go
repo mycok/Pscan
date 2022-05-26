@@ -20,7 +20,7 @@ var addCmd = &cobra.Command{
 	Aliases: []string{"a"},
 	Short:   "Add new host(s) to the hosts list",
 	Long: `Add any number of hosts to the hosts list. Do this by providing
-a comma separated list of host names.`,
+a space / comma separated list of host names.`,
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {

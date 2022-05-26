@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -47,19 +49,19 @@ func TestHostActions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var out bytes.Buffer
+			var outputBuf bytes.Buffer
 
 			fileName := setup(t, tc.args, tc.initList)
 			defer t.Cleanup(func() {
 				os.Remove(fileName)
 			})
 
-			if err := tc.actionFunc(&out, fileName, tc.args); err != nil {
+			if err := tc.actionFunc(&outputBuf, fileName, tc.args); err != nil {
 				t.Fatalf("Expected no error but got: %q instead\n", err)
 			}
 
-			if tc.expected != out.String() {
-				t.Errorf("Expected output: %q, but got: %q instead", tc.expected, out.String())
+			if tc.expected != outputBuf.String() {
+				t.Errorf("Expected output: %q, but got: %q instead", tc.expected, outputBuf.String())
 			}
 		})
 	}
@@ -73,7 +75,7 @@ func TestToolIntegration(t *testing.T) {
 		os.Remove(fileName)
 	})
 
-	var outBuf bytes.Buffer
+	var outputBuf bytes.Buffer
 
 	hostToDelete := "host2"
 
@@ -92,30 +94,97 @@ func TestToolIntegration(t *testing.T) {
 	expectedOutput += strings.Join(hostsAfterDel, "\n")
 	expectedOutput += fmt.Sprintln()
 
+	for _, h := range hostsAfterDel {
+		expectedOutput += fmt.Sprintf("%s: Host not found", h)
+		expectedOutput += fmt.Sprintln()
+	}
+
+	expectedOutput += fmt.Sprintln()
+
 	// Add hosts to the list.
-	if err := addAction(&outBuf, fileName, hosts); err != nil {
+	if err := addAction(&outputBuf, fileName, hosts); err != nil {
 		t.Fatalf("Expected no error but got: %q instead\n", err)
 	}
 
 	// List all hosts.
-	if err := listAction(&outBuf, fileName, nil); err != nil {
+	if err := listAction(&outputBuf, fileName, nil); err != nil {
 		t.Fatalf("Expected no error but got: %q instead\n", err)
 	}
 
 	// Delete a host.
-	if err := deleteAction(&outBuf, fileName, []string{hostToDelete}); err != nil {
+	if err := deleteAction(&outputBuf, fileName, []string{hostToDelete}); err != nil {
 		t.Fatalf("Expected no error but got: %q instead\n", err)
 	}
 
 	// List remaining hosts after a deletion operation.
-	if err := listAction(&outBuf, fileName, nil); err != nil {
+	if err := listAction(&outputBuf, fileName, nil); err != nil {
 		t.Fatalf("Expected no error but got: %q instead\n", err)
 	}
 
-	if expectedOutput != outBuf.String() {
-		t.Errorf("Expected output: %q, but got: %q instead\n", expectedOutput, outBuf.String())
+	// Perform a port scan on a list of hosts.
+	if err := scanAction(&outputBuf, fileName, nil); err != nil {
+		t.Fatalf("Expected no error but got: %q instead\n", err)
 	}
 
+	if expectedOutput != outputBuf.String() {
+		t.Errorf("Expected output: %q, but got: %q instead\n", expectedOutput, outputBuf.String())
+	}
+
+}
+
+func TestScanAction(t *testing.T) {
+	hosts := []string{"localhost", "389.389.389.389"}
+
+	fileName := setup(t, hosts, true)
+	defer t.Cleanup(func() {
+		os.Remove(fileName)
+	})
+
+	ports := []int{}
+
+	// Initialize two ports, 1 open and 1 closed
+	for i := 0; i < 2; i++ {
+		listener, err := net.Listen("tcp", net.JoinHostPort("localhost", "0"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer listener.Close()
+
+		_, portStr, err := net.SplitHostPort(listener.Addr().String())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ports = append(ports, port)
+
+		if i == 1 {
+			listener.Close()
+		}
+	}
+
+	// Define the expected output.
+	expectedOutput := fmt.Sprintln("localhost:")
+	expectedOutput += fmt.Sprintf("\t%d: open\n", ports[0])
+	expectedOutput += fmt.Sprintf("\t%d: closed\n", ports[1])
+	expectedOutput += fmt.Sprintln()
+	expectedOutput += fmt.Sprintln("389.389.389.389: Host not found")
+	expectedOutput += fmt.Sprintln()
+
+	var outputBuf bytes.Buffer
+
+	if err := scanAction(&outputBuf, fileName, ports); err != nil {
+		t.Fatalf("Expected nil error, but got: %q\n", err)
+	}
+
+	if expectedOutput != outputBuf.String() {
+		t.Errorf("Expected output %q, but got: %q instead", expectedOutput, outputBuf.String())
+	}
 }
 
 func setup(t *testing.T, hosts []string, initList bool) string {

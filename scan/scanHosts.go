@@ -42,9 +42,9 @@ func scanPort(host string, port int) PortState {
 		return p
 	}
 
-	conn.Close()
-
 	p.Open = true
+
+	conn.Close()
 
 	return p
 }
