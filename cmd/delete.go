@@ -26,7 +26,7 @@ var deleteCmd = &cobra.Command{
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		hostsFile := viper.GetString("hosts-file")
-		
+
 		return deleteAction(os.Stdout, hostsFile, args)
 	},
 }

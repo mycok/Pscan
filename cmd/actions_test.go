@@ -75,6 +75,13 @@ func TestToolIntegration(t *testing.T) {
 		os.Remove(fileName)
 	})
 
+	dir, err := os.MkdirTemp("", "pScanTest")
+	if err != nil {
+		t.Fatalf("Error creating temp directory: %q", err)
+	}
+
+	defer os.Remove(dir)
+
 	var outputBuf bytes.Buffer
 
 	hostToDelete := "host2"
@@ -100,6 +107,7 @@ func TestToolIntegration(t *testing.T) {
 	}
 
 	expectedOutput += fmt.Sprintln()
+	expectedOutput += fmt.Sprintf("Documentation successfully created in %s\n", dir)
 
 	// Add hosts to the list.
 	if err := addAction(&outputBuf, fileName, hosts); err != nil {
@@ -123,6 +131,11 @@ func TestToolIntegration(t *testing.T) {
 
 	// Perform a port scan on a list of hosts.
 	if err := scanAction(&outputBuf, fileName, nil); err != nil {
+		t.Fatalf("Expected no error but got: %q instead\n", err)
+	}
+
+	// Generate tool command's documentation.
+	if err := docsAction(&outputBuf, dir); err != nil {
 		t.Fatalf("Expected no error but got: %q instead\n", err)
 	}
 
@@ -179,7 +192,28 @@ func TestScanAction(t *testing.T) {
 	var outputBuf bytes.Buffer
 
 	if err := scanAction(&outputBuf, fileName, ports); err != nil {
-		t.Fatalf("Expected nil error, but got: %q\n", err)
+		t.Fatalf("Expected no error, but got: %q\n", err)
+	}
+
+	if expectedOutput != outputBuf.String() {
+		t.Errorf("Expected output %q, but got: %q instead", expectedOutput, outputBuf.String())
+	}
+}
+
+func TestDocsAction(t *testing.T) {
+	var outputBuf bytes.Buffer
+
+	dir, err := os.MkdirTemp("", "pScanTest")
+	if err != nil {
+		t.Fatalf("Error creating temp directory: %q", err)
+	}
+
+	defer os.Remove(dir)
+
+	expectedOutput := fmt.Sprintf("Documentation successfully created in %s\n", dir)
+
+	if err := docsAction(&outputBuf, dir); err != nil {
+		t.Fatalf("Expected no error, but got: %q\n", err)
 	}
 
 	if expectedOutput != outputBuf.String() {

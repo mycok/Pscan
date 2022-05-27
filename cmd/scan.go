@@ -17,8 +17,8 @@ import (
 
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
-	Use:   "scan",
-	Short: "Run a port scan on the hosts",
+	Use:          "scan",
+	Short:        "Run a port scan on the hosts",
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		hostsFile := viper.GetString("hosts-file")
